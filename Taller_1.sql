@@ -1,0 +1,184 @@
+DROP DATABASE MUSEO
+
+CREATE DATABASE MUSEO
+
+USE MUSEO
+
+CREATE TABLE PIEZA(
+CODIGO_PIEZA VARCHAR(5) PRIMARY KEY NOT NULL,
+NOMBRE VARCHAR(50)
+)
+
+CREATE TABLE PINTOR(
+ID_PINTOR VARCHAR(5) PRIMARY KEY NOT NULL,
+NOMBRE VARCHAR(50),
+COMENTARIO VARCHAR(50)
+)
+
+CREATE TABLE EXPOSICION(
+ID_EXPO INT PRIMARY KEY NOT NULL, 
+COD_PIEZA VARCHAR(5),
+IDPINTOR VARCHAR(5),
+PRECIO DECIMAL(24,2)
+)
+
+ALTER TABLE EXPOSICION ADD CONSTRAINT fk_exposicion_pieza
+FOREIGN KEY (COD_PIEZA) REFERENCES PIEZA(CODIGO_PIEZA)
+
+ALTER TABLE EXPOSICION ADD CONSTRAINT fk_exposicion_pintor
+FOREIGN KEY (IDPINTOR) REFERENCES PINTOR(ID_PINTOR)
+
+
+--VALIDACION DE TABLA PIEZA
+SELECT * FROM PIEZA
+
+--Insertando datos en Tabla Pieza
+INSERT INTO PIEZA VALUES('PA001','La Ultima Cena');INSERT INTO PIEZA VALUES('PA002','La Gioconda');
+INSERT INTO PIEZA VALUES('PA003','La Noche Estrellada');INSERT INTO PIEZA VALUES('PA004','Las Tres Grascias');
+INSERT INTO PIEZA VALUES('PA005','El Grito');INSERT INTO PIEZA VALUES('PA006','El Guernica');
+INSERT INTO PIEZA VALUES('PA007','La Creacion de Adán');INSERT INTO PIEZA VALUES('PA008','Los Girasoles');
+INSERT INTO PIEZA VALUES('PA009','La Tentacion de San Antonio');INSERT INTO PIEZA VALUES('PA010','Los Fusilamientos del 3 de Mayo');
+INSERT INTO PIEZA VALUES('PA011','El Taller de BD');
+
+
+--VALIDACION DE TABLA PINTOR
+SELECT * FROM PINTOR
+
+--Insertando datos en Tabla PINTOR
+INSERT INTO PINTOR VALUES('NA001','Goya','Expondran sus piezas');INSERT INTO PINTOR VALUES('NA002','Dalí','Expondran sus piezas');
+INSERT INTO PINTOR VALUES('NA003','Van Gogh','Expondran sus piezas');INSERT INTO PINTOR VALUES('NA004','Miguel Angel','Expondran sus piezas');
+INSERT INTO PINTOR VALUES('NA005','Pablo Picasso','Expondran sus piezas');INSERT INTO PINTOR VALUES('NA006','Rubens','Expondran sus piezas');
+INSERT INTO PINTOR VALUES('NA007','Da Vinci','Expondran sus piezas');INSERT INTO PINTOR VALUES('NA008','Kevin','Expondran sus piezas');
+
+
+--VALIDACION DE TABLA EXPOSICION
+SELECT * FROM EXPOSICION
+
+INSERT INTO EXPOSICION VALUES (1,'PA001','NA007',12000.80);INSERT INTO EXPOSICION VALUES (2,'PA002','NA007',13500.70);
+INSERT INTO EXPOSICION VALUES (3,'PA003','NA003',18000.13);INSERT INTO EXPOSICION VALUES (4,'PA004','NA006',25000.00);
+INSERT INTO EXPOSICION VALUES (5,'PA005','NA003',30879.00);INSERT INTO EXPOSICION VALUES (6,'PA006','NA005',25000.25);
+INSERT INTO EXPOSICION VALUES (7,'PA007','NA004',50000.75);INSERT INTO EXPOSICION VALUES (8,'PA008','NA003',10000.80);
+INSERT INTO EXPOSICION VALUES (9,'PA009','NA002',13000.10);INSERT INTO EXPOSICION VALUES (10,'PA010','NA001',9000.05);
+INSERT INTO EXPOSICION VALUES (11,'PA011','NA008',NULL);
+
+--1. Obtener los nombres de todas las piezas de arte.
+
+SELECT p.NOMBRE
+FROM PIEZA P
+
+--2. Obtener todos los datos de todos los pintores.
+
+SELECT * FROM PINTOR
+
+--3. Obtener el precio medio de los cuadros expuestos (dos decimales).
+
+SELECT SUM(e.PRECIO) AS [TOTAL PRECIOS], COUNT(e.ID_EXPO) AS [TOTAL DE REGISTROS], 
+Format((SUM(e.PRECIO))/(COUNT(e.ID_EXPO)),'N2') AS [PRECIO_MEDIO_]
+FROM EXPOSICION e
+
+SELECT * FROM EXPOSICION
+
+--206382,58 - TOTAL DE PRECIOS
+--11 Registros - TOTAL DE REGISTROS  
+
+
+--4. Obtener el nombre del pintor que hizo la pieza “El grito”
+SELECT p.NOMBRE
+FROM PIEZA pi
+INNER JOIN EXPOSICION ex
+ON pi.CODIGO_PIEZA = ex.COD_PIEZA
+INNER JOIN PINTOR p
+ON ex.IDPINTOR = p.ID_PINTOR
+WHERE PI.NOMBRE = 'El Grito'
+
+--5. Obtener los nombres de las piezas expuestas del pintor Van Gogh.
+SELECT pi.NOMBRE
+FROM PIEZA pi
+INNER JOIN EXPOSICION ex
+ON pi.CODIGO_PIEZA = ex.COD_PIEZA
+INNER JOIN PINTOR p
+ON ex.IDPINTOR = p.ID_PINTOR
+WHERE p.NOMBRE = 'Van Gogh'
+
+
+--6. Obtener el nombre de la pieza más cara de toda la exposición.
+SELECT PI.NOMBRE
+FROM PIEZA pi
+INNER JOIN EXPOSICION ex
+ON pi.CODIGO_PIEZA = ex.COD_PIEZA
+WHERE PRECIO = (SELECT MAX(PRECIO) 
+				From EXPOSICION)
+
+--7. Obtener el nombre de los 3 pintores que suministran las piezas más caras, 
+--indicando el nombre de la pieza y el precio de la obra de arte.
+SELECT TOP(3)PI.NOMBRE, PRECIO
+FROM PIEZA pi
+INNER JOIN EXPOSICION ex
+ON pi.CODIGO_PIEZA = ex.COD_PIEZA
+ORDER BY ex.PRECIO DESC
+
+--8. Nombre de los pintores en exposición y su cantidad de cuadros respectivos.
+SELECT p.NOMBRE, COUNT(ex.IDPINTOR) AS [Cantidad de cuadros]
+FROM PIEZA pi
+INNER JOIN EXPOSICION ex
+ON pi.CODIGO_PIEZA = ex.COD_PIEZA
+INNER JOIN PINTOR p
+ON ex.IDPINTOR = p.ID_PINTOR
+GROUP BY ex.IDPINTOR, p.NOMBRE
+
+--9. Nombre de los cuadros de los pintores Van Gogh y Da Vinci.
+
+SELECT pi.NOMBRE
+FROM PIEZA pi
+INNER JOIN EXPOSICION ex
+ON pi.CODIGO_PIEZA = ex.COD_PIEZA
+WHERE ex.IDPINTOR = 'NA003' OR ex.IDPINTOR='NA007'
+
+--10. Aumentar los precios de las piezas en una unidad.
+
+UPDATE EXPOSICION SET PRECIO = ROUND(PRECIO + 1, 2)
+
+SELECT * FROM EXPOSICION
+
+--11. Sustituir los datos del pintor Van Gogh por el nombre “Vincent Van Gogh”.
+	Update PINTOR SET NOMBRE='Vincent Van Gogh'
+	WHERE NOMBRE='Van Gogh'
+
+	SELECT p.ID_PINTOR, P.NOMBRE
+	FROM PINTOR p
+	WHERE p.ID_PINTOR = 'NA003'
+	
+--12. Sustituir los datos del pintor Da Vinci por el nombre “Leonardo Da Vinci”.
+	Update PINTOR SET NOMBRE='Leonardo Da Vinci'
+	WHERE ID_PINTOR='NA007'
+
+	SELECT p.ID_PINTOR, P.NOMBRE
+	FROM PINTOR p
+	WHERE p.ID_PINTOR = 'NA007'
+
+
+--13. Hacer constar en la base de datos que el artista Kevin ya no va a exponer
+--ningún cuadro en nuestro Museo. 
+--(Aunque el pintor en si va a seguir en nuestra base de datos).
+
+	UPDATE PINTOR SET COMENTARIO='NO SE EXPONDRAN SUS PIEZAS'
+	WHERE ID_PINTOR='NA008'
+		
+		--DE CUALES PINTORES SE EXPONDRAN LAS PINTURAS?
+
+		SELECT p.NOMBRE, pi.NOMBRE, p.COMENTARIO
+		FROM PINTOR p
+		INNER JOIN EXPOSICION ex
+		ON p.ID_PINTOR = ex.IDPINTOR
+		INNER JOIN PIEZA pi
+		ON ex.COD_PIEZA = pi.CODIGO_PIEZA
+
+
+--14. Eliminar el documento del pintor con menos cantidad de obras expuestas.
+		DELETE FROM EXPOSICION
+		WHERE IDPINTOR = (SELECT top(1) ex.IDPINTOR
+							FROM EXPOSICION EX
+							ORDER BY ex.IDPINTOR
+							)
+
+		SELECT * FROM EXPOSICION
